@@ -1,6 +1,6 @@
 import { dirname, resolve } from "std/path/mod.ts";
 import { parse as parseToml } from "std/toml/mod.ts";
-import { detectProject, loadConfig } from "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.1/deno/mod.ts";
+import { detectProject, loadConfig, collectWorkspaceConfigs } from "@loru/devkit";
 import { schemasHandler } from "./schemas/mod.ts";
 
 async function fileExists(path: string): Promise<boolean> {
@@ -27,11 +27,10 @@ async function run(cmd: string, cwd: string) {
 export async function checkHandler(_flags: Record<string, unknown>) {
   await schemasHandler({ _: ["validate"] });
 
-  const { path, baseDir, config } = await loadConfig();
+  const configs = await collectWorkspaceConfigs();
   const paths = new Set<string>();
-  paths.add(baseDir);
-  for (const m of config?.workspace?.members ?? []) {
-    paths.add(resolve(baseDir, m));
+  for (const cfg of configs) {
+    paths.add(cfg.baseDir);
   }
 
   for (const p of paths) {

@@ -1,5 +1,5 @@
 import { dirname, resolve } from "std/path/mod.ts";
-import { fetchSchema, loadConfig } from "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.1/deno/mod.ts";
+import { fetchSchema, loadConfig, collectWorkspaceConfigs } from "@loru/devkit";
 
 type Action = "fetch" | "validate";
 
@@ -17,31 +17,22 @@ async function run(cmd: string, cwd: string) {
 
 export async function schemasHandler(flags: Record<string, unknown>) {
   const action: Action = (flags._?.[0] as Action) ?? "fetch";
-  const base = await loadConfig();
-  if (!base.config || !base.path) {
+  const configs = await collectWorkspaceConfigs();
+  if (!configs.length) {
     console.warn("No loru.toml found.");
     return;
   }
 
-  const cfgPaths = new Set<string>();
-  cfgPaths.add(base.path);
-  for (const m of base.config.workspace?.members ?? []) {
-    const memberCfg = await loadConfig(undefined, resolve(dirname(base.path), m));
-    if (memberCfg.path) cfgPaths.add(memberCfg.path);
-  }
-
-  for (const cfgPath of cfgPaths) {
-    const cfg = await loadConfig(cfgPath, dirname(cfgPath));
+  for (const cfg of configs) {
     const schemaPath = await fetchSchema({
       schema: "loru-config",
       version: cfg.config?.meta?.schema_version,
-      metaFile: cfgPath,
+      metaFile: cfg.path,
     });
-    console.log(`schema cached: ${schemaPath} for ${cfgPath}`);
+    console.log(`schema cached: ${schemaPath} for ${cfg.path}`);
     if (action === "validate") {
-      const dir = dirname(cfgPath);
-      await run("taplo fmt --check", dir);
-      await run(`taplo lint --schema ${schemaPath} ${cfgPath}`, dir);
+      await run("taplo fmt --check", cfg.baseDir);
+      await run(`taplo lint --schema ${schemaPath} ${cfg.path}`, cfg.baseDir);
     }
   }
 }

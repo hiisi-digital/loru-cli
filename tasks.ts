@@ -1,0 +1,28 @@
+import { resolveTasks, collectWorkspaceConfigs } from "@loru/devkit";
+
+async function run(cmd: string, cwd: string) {
+  const proc = new Deno.Command(Deno.env.get("SHELL") ?? "sh", {
+    args: ["-c", cmd],
+    cwd,
+    stdin: "null",
+    stdout: "inherit",
+    stderr: "inherit",
+  });
+  const { code } = await proc.output();
+  if (code !== 0) throw new Error(`Command failed: ${cmd} (cwd=${cwd})`);
+}
+
+export async function runTask(name: string): Promise<boolean> {
+  const configs = await collectWorkspaceConfigs();
+  if (!configs.length) return false;
+  let ran = false;
+  for (const cfg of configs) {
+    const tasks = resolveTasks(cfg.config, cfg.baseDir, name);
+    for (const t of tasks) {
+      ran = true;
+      console.log(`Running task ${t.name} in ${cfg.baseDir}: ${t.cmd}`);
+      await run(t.cmd, cfg.baseDir);
+    }
+  }
+  return ran;
+}
