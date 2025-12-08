@@ -12,18 +12,6 @@ async function fileExists(path: string): Promise<boolean> {
   }
 }
 
-async function loadPaths(baseDir: string, configText?: string): Promise<string[]> {
-  const paths = new Set<string>();
-  if (configText) {
-    const cfg = parseToml(configText) as { plugin?: Array<Record<string, unknown>>; page?: Array<Record<string, unknown>> };
-    for (const p of cfg.plugin ?? []) paths.add(typeof p.path === "string" ? resolve(baseDir, p.path) : baseDir);
-    for (const t of cfg.page ?? []) paths.add(typeof t.path === "string" ? resolve(baseDir, t.path) : baseDir);
-  } else {
-    paths.add(baseDir);
-  }
-  return [...paths];
-}
-
 async function run(cmd: string, cwd: string) {
   const proc = new Deno.Command(Deno.env.get("SHELL") ?? "sh", {
     args: ["-c", cmd],
@@ -39,9 +27,12 @@ async function run(cmd: string, cwd: string) {
 export async function checkHandler(_flags: Record<string, unknown>) {
   await schemasHandler({ _: ["validate"] });
 
-  const { path, baseDir } = await loadConfig();
-  const configText = path ? await Deno.readTextFile(path) : undefined;
-  const paths = await loadPaths(baseDir, configText);
+  const { path, baseDir, config } = await loadConfig();
+  const paths = new Set<string>();
+  paths.add(baseDir);
+  for (const m of config?.workspace?.members ?? []) {
+    paths.add(resolve(baseDir, m));
+  }
 
   for (const p of paths) {
     const info = await detectProject(p);

@@ -1,10 +1,5 @@
-import { dirname } from "std/path/mod.ts";
-import {
-  fetchSchema,
-  loadConfig,
-  resolveMetaFile,
-  fileExists,
-} from "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.0/deno/mod.ts";
+import { dirname, resolve } from "std/path/mod.ts";
+import { fetchSchema, loadConfig } from "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.1/deno/mod.ts";
 
 type Action = "fetch" | "validate";
 
@@ -22,47 +17,31 @@ async function run(cmd: string, cwd: string) {
 
 export async function schemasHandler(flags: Record<string, unknown>) {
   const action: Action = (flags._?.[0] as Action) ?? "fetch";
-  const { config, baseDir } = await loadConfig();
-
-  const targets: Array<{ kind: "plugin" | "tenant"; schemaVersion?: string; metaFile: string }> = [];
-  for (const p of config?.plugin ?? []) {
-    targets.push({
-      kind: "plugin",
-      schemaVersion: p.schema_version ?? config?.meta?.schema_version,
-      metaFile: resolveMetaFile(baseDir, p.path, "plugin"),
-    });
-  }
-  for (const t of config?.page ?? []) {
-    targets.push({
-      kind: "tenant",
-      schemaVersion: t.schema_version ?? config?.meta?.schema_version,
-      metaFile: resolveMetaFile(baseDir, t.path, "tenant"),
-    });
-  }
-
-  // fallbacks if no config
-  if (!targets.length) {
-    if (await fileExists("plugin.toml")) targets.push({ kind: "plugin", metaFile: "plugin.toml" });
-    if (await fileExists("tenant.toml")) targets.push({ kind: "tenant", metaFile: "tenant.toml" });
-  }
-
-  if (!targets.length) {
-    console.warn("No plugin or tenant metadata found.");
+  const base = await loadConfig();
+  if (!base.config || !base.path) {
+    console.warn("No loru.toml found.");
     return;
   }
 
-  for (const target of targets) {
-    const schema = target.kind === "plugin" ? "plugin-metadata" : "tenant-metadata";
+  const cfgPaths = new Set<string>();
+  cfgPaths.add(base.path);
+  for (const m of base.config.workspace?.members ?? []) {
+    const memberCfg = await loadConfig(undefined, resolve(dirname(base.path), m));
+    if (memberCfg.path) cfgPaths.add(memberCfg.path);
+  }
+
+  for (const cfgPath of cfgPaths) {
+    const cfg = await loadConfig(cfgPath, dirname(cfgPath));
     const schemaPath = await fetchSchema({
-      schema,
-      version: target.schemaVersion ?? config?.meta?.schema_version,
-      metaFile: target.metaFile,
+      schema: "loru-config",
+      version: cfg.config?.meta?.schema_version,
+      metaFile: cfgPath,
     });
-    console.log(`schema cached: ${schemaPath}`);
+    console.log(`schema cached: ${schemaPath} for ${cfgPath}`);
     if (action === "validate") {
-      const dir = dirname(target.metaFile);
+      const dir = dirname(cfgPath);
       await run("taplo fmt --check", dir);
-      await run(`taplo lint --schema ${schemaPath}`, dir);
+      await run(`taplo lint --schema ${schemaPath} ${cfgPath}`, dir);
     }
   }
 }
