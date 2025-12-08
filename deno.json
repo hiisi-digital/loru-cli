@@ -1,16 +1,14 @@
 {
   "name": "@loru/cli",
-  "version": "0.1.0",
+  "version": "0.3.0",
+  "exports": "./main.ts",
   "tasks": {
     "dev": "deno run -A main.ts"
   },
   "imports": {
-    "std/path": "https://deno.land/std@0.208.0/path/mod.ts",
-    "std/flags": "https://deno.land/std@0.208.0/flags/mod.ts",
-    "std/fs": "https://deno.land/std@0.208.0/fs/mod.ts",
-    "std/toml": "https://deno.land/std@0.208.0/toml/mod.ts",
-    "std/semver": "https://deno.land/std@0.208.0/semver/mod.ts",
-    "@loru/devkit": "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.4/deno/mod.ts"
+    "std/": "https://deno.land/std@0.208.0/",
+    "@loru/devkit": "../loru-devkit/deno/mod.ts",
+    "@loru/schemas": "../loru-schemas/typescript/mod.ts"
   },
   "lock": {
     "path": ".loru/deno.lock"

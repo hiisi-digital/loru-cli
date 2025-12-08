@@ -16,13 +16,23 @@ export async function runTask(name: string): Promise<boolean> {
   const configs = await collectWorkspaceConfigs();
   if (!configs.length) return false;
   let ran = false;
+  const errors: string[] = [];
+
   for (const cfg of configs) {
     const tasks = resolveTasks(cfg.config, cfg.baseDir, name);
     for (const t of tasks) {
       ran = true;
-      console.log(`Running task ${t.name} in ${cfg.baseDir}: ${t.cmd}`);
-      await run(t.cmd, cfg.baseDir);
+      console.log(`Running task ${t.name} in ${t.cwd}: ${t.cmd}`);
+      try {
+        await run(t.cmd, t.cwd);
+      } catch (err) {
+        errors.push(`${t.cwd}: ${(err as Error).message}`);
+      }
     }
+  }
+
+  if (errors.length) {
+    throw new Error(`Task "${name}" completed with errors:\n${errors.join("\n")}`);
   }
   return ran;
 }

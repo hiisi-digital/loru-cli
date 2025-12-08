@@ -10,8 +10,10 @@ Goals:
 
 ## Install (Deno)
 
+Run from a clone of this repository (imports point to sibling `loru-devkit` and `loru-schemas`):
+
 ```bash
-deno install -A -f -n loru https://raw.githubusercontent.com/hiisi-digital/loru-cli/main/main.ts
+deno install -A -f -n loru --config=deno.json main.ts
 ```
 
 ## Config: `loru.toml`
@@ -42,20 +44,24 @@ Lookup:
 - Searches `loru.toml` in cwd, then `.loru/loru.toml`, then climbs parents.
 - If no config, per-entry metadata files (`plugin.toml` / `tenant.toml`) are still honored for schema version when validating.
 
-## Commands (early draft)
+## Commands
 
 ```bash
-loru dev schemas fetch      # fetch+cache schemas for all entries (plugins/pages)
-loru dev schemas validate   # fetch+cache then Taplo lint metadata (plugin/tenant or loru.toml)
+loru run <task>             # run tasks from loru.toml (workspace-aware)
+loru dev schemas fetch|validate
 loru dev check              # schema validate + Deno/Rust checks where applicable
-loru dev bump --level=patch|minor|major --file=deno.json
+loru dev build              # phased build hooks + project build (deno/cargo)
+loru dev init githooks      # install conventional commit + pre-push hooks for workspace
+loru dev init buildsys      # centralize locks/caches under .loru
+loru dev bump --level=patch|minor|major   # per-entry bump/tag/release
 loru dev bom fetch          # fetch platform BOM (from loru-devkit)
 ```
 
 ## Behavior
-- **Schema fetch**: uses `loru-devkit` semver-aware fetcher (tags in `loru-schemas`), caches under `.loru/cache/schemas`.
-- **Schema validate**: Taplo fmt/lint against fetched schema for each metadata file found (`plugin.toml`, `tenant.toml`, or `loru.toml` as fallback).
-- **Checks**: For each entry `path`, if `deno.json*` exists run `deno fmt --check && deno lint`; if `Cargo.toml` exists run `cargo fmt --check && cargo check` (optional clippy can be added later).
+- **Schema fetch/validate**: semver-aware fetcher (tags in `loru-schemas`), caches under `.loru/cache/schemas`. Validation uses Taplo against `loru.toml`.
+- **Checks**: For each entry path, run Deno fmt/lint/check when `deno.json*` is present, or cargo fmt/clippy/test for Rust.
+- **Build**: Executes declared `[[build]]` phases and then builds detected Deno/Rust projects.
+- **Workspace aware**: All dev commands and `loru run` walk workspace members.
 
 ## TODO / next steps
 - Add CLI release workflow (tags).

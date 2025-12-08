@@ -11,12 +11,16 @@ async function main() {
     case "dev":
       await devHandler(rest, args);
       return;
-    default:
-      // fallback to task execution
-      if (cmd) {
-        const ran = await runTask(cmd);
-        if (ran) return;
+    case "run": {
+      const task = rest[0];
+      if (!task) return help();
+      const ran = await runTask(task);
+      if (!ran) {
+        console.warn(`No task "${task}" found in workspace.`);
       }
+      return;
+    }
+    default:
       return help();
   }
 }
@@ -25,7 +29,8 @@ function help() {
   console.log(`Usage: loru <command>
 
 Commands:
-  dev ...      Development utilities (schemas, check, bump, bom)
+  dev ...      Development utilities (schemas, check, bump, bom, init)
+  run <task>   Run workspace task defined in loru.toml
 `);
 }
 

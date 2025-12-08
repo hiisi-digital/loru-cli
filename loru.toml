@@ -1,5 +1,5 @@
 [meta]
-schema_version = "0.2.2"
+schema_version = "0.3.0"
 
 [workspace]
 members = []

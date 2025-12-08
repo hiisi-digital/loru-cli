@@ -3,7 +3,8 @@ import { schemasHandler } from "./schemas/mod.ts";
 import { checkHandler } from "./check.ts";
 import { bumpHandler } from "./bump.ts";
 import { bomHandler } from "./bom/mod.ts";
-import { hooksHandler } from "./hooks.ts";
+import { buildHandler } from "./build.ts";
+import { initHandler } from "./init.ts";
 
 export default async function dev(args: string[], raw: Record<string, unknown>) {
   const [sub, ...rest] = args;
@@ -18,8 +19,10 @@ export default async function dev(args: string[], raw: Record<string, unknown>) 
       return await bumpHandler(flags);
     case "bom":
       return await bomHandler(flags);
-    case "hooks":
-      return await hooksHandler(flags);
+    case "build":
+      return await buildHandler(flags);
+    case "init":
+      return await initHandler(rest, flags);
     default:
       return devHelp();
   }
@@ -33,5 +36,7 @@ Subcommands:
   check
   bump --level=patch|minor|major [--file=deno.json]
   bom fetch
+  build
+  init githooks|buildsys
 `);
 }

@@ -16,7 +16,7 @@ async function run(cmd: string, cwd: string) {
 }
 
 export async function schemasHandler(flags: Record<string, unknown>) {
-  const action: Action = (flags._?.[0] as Action) ?? "fetch";
+  const action: Action = ((flags._ as unknown[] | undefined)?.[0] as Action) ?? "fetch";
   const configs = await collectWorkspaceConfigs();
   if (!configs.length) {
     console.warn("No loru.toml found.");
