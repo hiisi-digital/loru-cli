@@ -1,0 +1,10 @@
+[meta]
+schema_version = "0.2.0"
+
+[[plugin]]
+id = "loru-cli"
+name = "Loru CLI"
+path = "."
+
+[workspace]
+members = []
