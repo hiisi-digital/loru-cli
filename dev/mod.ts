@@ -3,6 +3,7 @@ import { schemasHandler } from "./schemas/mod.ts";
 import { checkHandler } from "./check.ts";
 import { bumpHandler } from "./bump.ts";
 import { bomHandler } from "./bom/mod.ts";
+import { hooksHandler } from "./hooks.ts";
 
 export default async function dev(args: string[], raw: Record<string, unknown>) {
   const [sub, ...rest] = args;
@@ -17,6 +18,8 @@ export default async function dev(args: string[], raw: Record<string, unknown>) 
       return await bumpHandler(flags);
     case "bom":
       return await bomHandler(flags);
+    case "hooks":
+      return await hooksHandler(flags);
     default:
       return devHelp();
   }

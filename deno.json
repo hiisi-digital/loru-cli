@@ -10,7 +10,7 @@
     "std/fs": "https://deno.land/std@0.208.0/fs/mod.ts",
     "std/toml": "https://deno.land/std@0.208.0/toml/mod.ts",
     "std/semver": "https://deno.land/std@0.208.0/semver/mod.ts",
-    "@loru/devkit": "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.3/deno/mod.ts"
+    "@loru/devkit": "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.4/deno/mod.ts"
   },
   "lock": {
     "path": ".loru/deno.lock"
