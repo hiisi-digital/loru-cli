@@ -4,7 +4,7 @@ import {
   loadConfig,
   resolveMetaFile,
   fileExists,
-} from "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/main/deno/mod.ts";
+} from "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.0/deno/mod.ts";
 
 type Action = "fetch" | "validate";
 
