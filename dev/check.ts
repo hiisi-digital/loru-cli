@@ -1,6 +1,6 @@
 import { dirname, resolve } from "std/path/mod.ts";
 import { parse as parseToml } from "std/toml/mod.ts";
-import { detectProject, loadConfig } from "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.0/deno/mod.ts";
+import { detectProject, loadConfig } from "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.1/deno/mod.ts";
 import { schemasHandler } from "./schemas/mod.ts";
 
 async function fileExists(path: string): Promise<boolean> {

@@ -1,4 +1,4 @@
-import { bumpJsonVersion } from "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.0/deno/mod.ts";
+import { bumpJsonVersion } from "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.2.1/deno/mod.ts";
 
 export async function bumpHandler(flags: Record<string, unknown>) {
   const level = flags.level as string | undefined;
