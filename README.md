@@ -48,7 +48,7 @@ Lookup:
 loru dev schemas fetch      # fetch+cache schemas for all entries (plugins/pages)
 loru dev schemas validate   # fetch+cache then Taplo lint metadata (plugin/tenant or loru.toml)
 loru dev check              # schema validate + Deno/Rust checks where applicable
-loru dev bump-version --level=patch|minor|major --file=deno.json
+loru dev bump --level=patch|minor|major --file=deno.json
 loru dev bom fetch          # fetch platform BOM (from loru-devkit)
 ```
 

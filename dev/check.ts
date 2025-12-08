@@ -1,6 +1,6 @@
 import { dirname, resolve } from "std/path/mod.ts";
 import { parse as parseToml } from "std/toml/mod.ts";
-import { detectProject } from "../devkit.ts";
+import { detectProject, loadConfig } from "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/main/deno/mod.ts";
 import { schemasHandler } from "./schemas/mod.ts";
 
 async function fileExists(path: string): Promise<boolean> {
@@ -12,20 +12,10 @@ async function fileExists(path: string): Promise<boolean> {
   }
 }
 
-async function loadPaths(): Promise<string[]> {
-  const candidates = ["loru.toml", ".loru/loru.toml"];
-  let cfgPath: string | undefined;
-  for (const c of candidates) {
-    if (await fileExists(c)) {
-      cfgPath = c;
-      break;
-    }
-  }
-  const baseDir = cfgPath ? dirname(cfgPath) : Deno.cwd();
+async function loadPaths(baseDir: string, configText?: string): Promise<string[]> {
   const paths = new Set<string>();
-  if (cfgPath) {
-    const text = await Deno.readTextFile(cfgPath);
-    const cfg = parseToml(text) as { plugin?: Array<Record<string, unknown>>; page?: Array<Record<string, unknown>> };
+  if (configText) {
+    const cfg = parseToml(configText) as { plugin?: Array<Record<string, unknown>>; page?: Array<Record<string, unknown>> };
     for (const p of cfg.plugin ?? []) paths.add(typeof p.path === "string" ? resolve(baseDir, p.path) : baseDir);
     for (const t of cfg.page ?? []) paths.add(typeof t.path === "string" ? resolve(baseDir, t.path) : baseDir);
   } else {
@@ -46,12 +36,13 @@ async function run(cmd: string, cwd: string) {
   if (code !== 0) throw new Error(`Command failed: ${cmd} (cwd=${cwd})`);
 }
 
-export async function checkHandler(flags: Record<string, unknown>) {
-  // Validate schemas first
+export async function checkHandler(_flags: Record<string, unknown>) {
   await schemasHandler({ _: ["validate"] });
 
-  // Collect projects and run language checks
-  const paths = await loadPaths();
+  const { path, baseDir } = await loadConfig();
+  const configText = path ? await Deno.readTextFile(path) : undefined;
+  const paths = await loadPaths(baseDir, configText);
+
   for (const p of paths) {
     const info = await detectProject(p);
     if (info.kind === "deno") {
