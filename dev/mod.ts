@@ -8,7 +8,7 @@ import { initHandler } from "./init.ts";
 
 export default async function dev(args: string[], raw: Record<string, unknown>) {
   const [sub, ...rest] = args;
-  const flags = parse(rest);
+  const flags = raw;
 
   switch (sub) {
     case "schemas":

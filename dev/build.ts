@@ -1,10 +1,11 @@
 import { join } from "std/path/mod.ts";
-import { collectWorkspaceConfigs, resolveBuildTasks, detectProject } from "@loru/devkit";
+import { collectWorkspaceConfigs, resolveBuildTasks, detectProject, resolveArtifacts, resolveCommandEnv } from "@loru/devkit";
 
-async function run(cmd: string, cwd: string) {
+async function run(cmd: string, cwd: string, env?: Record<string, string>) {
   const proc = new Deno.Command(Deno.env.get("SHELL") ?? "sh", {
     args: ["-c", cmd],
     cwd,
+    env,
     stdin: "null",
     stdout: "inherit",
     stderr: "inherit",
@@ -13,11 +14,14 @@ async function run(cmd: string, cwd: string) {
   if (code !== 0) throw new Error(`Command failed: ${cmd} (cwd=${cwd})`);
 }
 
-async function runTasks(tasks: Array<{ cmd: string; cwd: string; name: string }>, errors: string[]) {
+async function runTasks(
+  tasks: Array<{ cmd: string; cwd: string; name: string; env?: Record<string, string> }>,
+  errors: string[],
+) {
   for (const task of tasks) {
     try {
       console.log(`build:${task.name} -> ${task.cmd} (cwd=${task.cwd})`);
-      await run(task.cmd, task.cwd);
+      await run(task.cmd, task.cwd, task.env);
     } catch (err) {
       errors.push(`${task.cwd}: ${(err as Error).message}`);
     }
@@ -30,6 +34,7 @@ export async function buildHandler(_flags: Record<string, unknown>) {
     console.warn("No loru.toml found.");
     return;
   }
+  const workspaceRoot = configs[0].baseDir;
 
   const phases = ["prebuild", "build", "postbuild"];
   const errors: string[] = [];
@@ -42,10 +47,37 @@ export async function buildHandler(_flags: Record<string, unknown>) {
     ];
 
     for (const phase of phases) {
-      await runTasks(resolveBuildTasks(cfg.config, cfg.baseDir, phase), errors);
+      const baseArtifacts = await resolveArtifacts(cfg.config, workspaceRoot, cfg.baseDir, "generic");
+      const baseEnv = await resolveCommandEnv({
+        cfg: cfg.config,
+        workspaceRoot,
+        projectRoot: cfg.baseDir,
+        tool: "generic",
+      });
+      await runTasks(
+        resolveBuildTasks(cfg.config, cfg.baseDir, phase).map((t) => ({
+          ...t,
+          env: baseEnv,
+        })),
+        errors,
+      );
       for (const target of targets) {
         const tPath = join(cfg.baseDir, target.path);
-        await runTasks(resolveBuildTasks(cfg.config, cfg.baseDir, phase, target.id, tPath), errors);
+        const targetArtifacts = await resolveArtifacts(cfg.config, workspaceRoot, tPath, "generic", target.id);
+        const targetEnv = await resolveCommandEnv({
+          cfg: cfg.config,
+          workspaceRoot,
+          projectRoot: tPath,
+          tool: "generic",
+          target: target.id,
+        });
+        await runTasks(
+          resolveBuildTasks(cfg.config, cfg.baseDir, phase, target.id, tPath).map((t) => ({
+            ...t,
+            env: targetEnv,
+          })),
+          errors,
+        );
       }
     }
 
@@ -53,9 +85,21 @@ export async function buildHandler(_flags: Record<string, unknown>) {
     for (const path of buildPaths) {
       const info = await detectProject(path);
       if (info.kind === "deno") {
-        await runTasks([{ cmd: "deno check", cwd: path, name: "deno-check" }], errors);
+        const env = await resolveCommandEnv({
+          cfg: cfg.config,
+          workspaceRoot,
+          projectRoot: path,
+          tool: "deno",
+        });
+        await runTasks([{ cmd: "deno check", cwd: path, name: "deno-check", env }], errors);
       } else if (info.kind === "rust") {
-        await runTasks([{ cmd: "cargo build", cwd: path, name: "cargo-build" }], errors);
+        const env = await resolveCommandEnv({
+          cfg: cfg.config,
+          workspaceRoot,
+          projectRoot: path,
+          tool: "cargo",
+        });
+        await runTasks([{ cmd: "cargo build", cwd: path, name: "cargo-build", env }], errors);
       }
     }
   }

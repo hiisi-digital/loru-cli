@@ -10,7 +10,7 @@ Goals:
 
 ## Install (Deno)
 
-Run from a clone of this repository (imports point to sibling `loru-devkit` and `loru-schemas`):
+Run from a clone of this repository (imports resolve from GitHub, no sibling repos needed):
 
 ```bash
 deno install -A -f -n loru --config=deno.json main.ts
@@ -21,21 +21,21 @@ deno install -A -f -n loru --config=deno.json main.ts
 Minimal example:
 ```toml
 [meta]
-schema_version = "0.1.0"   # default for entries without override
+schema_version = "0.3.2"   # default for entries without override
 
 [[plugin]]
 id = "my-plugin"
 name = "My Plugin"
 path = "."
 entrypoint = "mod.ts"
-schema_version = "0.1.0"
+schema_version = "0.3.2"
 
 [[page]]
 id = "my-tenant"
 name = "My Tenant"
 path = "."
 entrypoint = "main.ts"
-schema_version = "0.1.0"
+schema_version = "0.3.2"
 domains = ["example.com"]
 locales = ["en", "fi"]
 ```
@@ -59,8 +59,8 @@ loru dev bom fetch          # fetch platform BOM (from loru-devkit)
 
 ## Behavior
 - **Schema fetch/validate**: semver-aware fetcher (tags in `loru-schemas`), caches under `.loru/cache/schemas`. Validation uses Taplo against `loru.toml`.
-- **Checks**: For each entry path, run Deno fmt/lint/check when `deno.json*` is present, or cargo fmt/clippy/test for Rust.
-- **Build**: Executes declared `[[build]]` phases and then builds detected Deno/Rust projects.
+- **Checks**: Runs fmt/lint defaults for detected Deno/Rust projects, then executes per-stage `[[check.task]]` hooks (precheck/fmt/lint/check/test/postcheck) across workspace members/targets.
+- **Build**: Executes declared `[[build.task]]` phases and then builds detected Deno/Rust projects.
 - **Workspace aware**: All dev commands and `loru run` walk workspace members.
 
 ## TODO / next steps
