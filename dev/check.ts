@@ -46,7 +46,14 @@ export async function checkHandler(_flags: Record<string, unknown>) {
         id: p.id,
         path: p.path ?? ".",
       })),
-      ...(cfg.config.lib ?? []).map((l) => ({ id: l.name, path: l.path })),
+      ...(cfg.config.bin ?? []).map((b) => ({
+        id: b.id ?? b.name,
+        path: b.path ?? ".",
+      })),
+      ...(cfg.config.lib ?? []).map((l) => ({
+        id: l.name,
+        path: l.path ?? ".",
+      })),
     ];
 
     const paths = new Map<string, string | undefined>();

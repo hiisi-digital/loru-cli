@@ -56,7 +56,14 @@ export async function buildHandler(_flags: Record<string, unknown>) {
         id: p.id,
         path: p.path ?? ".",
       })),
-      ...(cfg.config.lib ?? []).map((l) => ({ id: l.name, path: l.path })),
+      ...(cfg.config.bin ?? []).map((b) => ({
+        id: b.id ?? b.name,
+        path: b.path ?? ".",
+      })),
+      ...(cfg.config.lib ?? []).map((l) => ({
+        id: l.name,
+        path: l.path ?? ".",
+      })),
     ];
 
     for (const phase of phases) {
