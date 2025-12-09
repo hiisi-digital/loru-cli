@@ -25,21 +25,21 @@ Minimal example:
 
 ```toml
 [meta]
-schema_version = "0.3.3"   # default for entries without override
+schema_version = "0.3.4"   # default for entries without override
 
-[plugin]]
+[[plugin]]
 id = "my-plugin"
 name = "My Plugin"
 path = "."
 entrypoint = "mod.ts"
-schema_version = "0.3.3"
+schema_version = "0.3.4"
 
-[page]]
+[[page]]
 id = "my-tenant"
 name = "My Tenant"
 path = "."
 entrypoint = "main.ts"
-schema_version = "0.3.3"
+schema_version = "0.3.4"
 domains = ["example.com"]
 locales = ["en", "fi"]
 ```
