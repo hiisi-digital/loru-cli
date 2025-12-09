@@ -1,4 +1,8 @@
-import { resolveTasks, collectWorkspaceConfigs, resolveArtifacts, resolveCommandEnv } from "@loru/devkit";
+import {
+  collectWorkspaceConfigs,
+  resolveCommandEnv,
+  resolveTasks,
+} from "@loru/devkit";
 
 async function run(cmd: string, cwd: string, env?: Record<string, string>) {
   const proc = new Deno.Command(Deno.env.get("SHELL") ?? "sh", {
@@ -40,7 +44,9 @@ export async function runTask(name: string): Promise<boolean> {
   }
 
   if (errors.length) {
-    throw new Error(`Task "${name}" completed with errors:\n${errors.join("\n")}`);
+    throw new Error(
+      `Task "${name}" completed with errors:\n${errors.join("\n")}`,
+    );
   }
   return ran;
 }

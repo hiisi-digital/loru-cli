@@ -1,5 +1,10 @@
 [meta]
-schema_version = "0.3.2"
+schema_version = "0.3.3"
 
 [workspace]
 members = []
+
+[[lib]]
+kind = "deno"
+name = "@loru/cli"
+path = "."

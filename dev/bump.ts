@@ -1,5 +1,7 @@
 import { bumpAndRelease, resumeReleases } from "@loru/devkit";
 
+type Level = "patch" | "minor" | "major";
+
 export async function bumpHandler(flags: Record<string, unknown>) {
   const fixMissing = Boolean(flags["fix-missing"]);
   const resume = Boolean(flags["resume"]);
@@ -7,7 +9,9 @@ export async function bumpHandler(flags: Record<string, unknown>) {
 
   if (resume) {
     if (fixMissing) {
-      console.warn("Resuming pending releases with --fix-missing: missing tags/releases will be backfilled without bumping.");
+      console.warn(
+        "Resuming pending releases with --fix-missing: missing tags/releases will be backfilled without bumping.",
+      );
     } else {
       console.warn("Resuming pending releases (no new bumps).");
     }
@@ -16,11 +20,15 @@ export async function bumpHandler(flags: Record<string, unknown>) {
   }
 
   if (!level || !["patch", "minor", "major"].includes(level)) {
-    console.error("Usage: loru dev bump --level=patch|minor|major [--fix-missing] [--resume]");
+    console.error(
+      "Usage: loru dev bump --level=patch|minor|major [--fix-missing] [--resume]",
+    );
     Deno.exit(1);
   }
   if (fixMissing) {
-    console.warn("Running with --fix-missing: existing versions without tags/releases will be backfilled before bumping.");
+    console.warn(
+      "Running with --fix-missing: existing versions without tags/releases will be backfilled before bumping.",
+    );
   }
-  await bumpAndRelease(level as any, { fixMissing });
+  await bumpAndRelease(level as Level, { fixMissing });
 }

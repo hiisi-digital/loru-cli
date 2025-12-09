@@ -7,19 +7,21 @@
   },
   "imports": {
     "std/": "https://deno.land/std@0.208.0/",
-    "@loru/devkit": "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.3.4/deno/mod.ts",
-    "@loru/schemas": "https://raw.githubusercontent.com/hiisi-digital/loru-schemas/v0.3.2/typescript/mod.ts"
+    "@loru/devkit": "https://raw.githubusercontent.com/hiisi-digital/loru-devkit/v0.3.5/deno/mod.ts",
+    "@loru/schemas": "https://raw.githubusercontent.com/hiisi-digital/loru-schemas/v0.3.3/typescript/mod.ts"
   },
   "lock": {
     "path": ".loru/deno.lock"
   },
   "lint": {
+    "exclude": [".loru/"],
     "rules": {
       "tags": ["recommended"]
     }
   },
   "fmt": {
     "indentWidth": 2,
-    "singleQuote": false
+    "singleQuote": false,
+    "exclude": [".loru/"]
   }
 }

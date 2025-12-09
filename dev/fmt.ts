@@ -8,16 +8,16 @@ import {
 import { schemasHandler } from "./schemas/mod.ts";
 import { defaultTasks, parseSkip, runTasks, type Task } from "./task_runner.ts";
 
-type CheckStage = "precheck" | "fmt" | "lint" | "check" | "test" | "postcheck";
+const stages = ["fmt", "lint"] as const;
 
-export async function checkHandler(_flags: Record<string, unknown>) {
-  const rawSkip = (_flags.skip as string | undefined) ?? "";
-  const skip = parseSkip(_flags);
+export async function fmtHandler(flags: Record<string, unknown>) {
+  const rawSkip = (flags.skip as string | undefined) ?? "";
+  const skip = parseSkip(flags);
 
   if (!skip.has("toml") && !skip.has("all")) {
-    await schemasHandler({ _: ["validate"], skip: rawSkip });
+    await schemasHandler({ _: ["fmt"], skip: rawSkip });
   } else {
-    console.warn("Skipping TOML validation due to --skip flag (toml/all).");
+    console.warn("Skipping TOML format/lint due to --skip flag (toml/all).");
   }
 
   const configs = await collectWorkspaceConfigs();
@@ -26,14 +26,6 @@ export async function checkHandler(_flags: Record<string, unknown>) {
     return;
   }
 
-  const stages: CheckStage[] = [
-    "precheck",
-    "fmt",
-    "lint",
-    "check",
-    "test",
-    "postcheck",
-  ];
   const errors: string[] = [];
   const workspaceRoot = configs[0].baseDir;
   for (const cfg of configs) {
@@ -55,7 +47,7 @@ export async function checkHandler(_flags: Record<string, unknown>) {
       paths.set(join(cfg.baseDir, target.path), target.id);
     }
 
-    const defaults = [];
+    const defaults: Task[] = [];
     for (const [path] of paths) {
       const info = await detectProject(path);
       if (
@@ -64,7 +56,7 @@ export async function checkHandler(_flags: Record<string, unknown>) {
         (info.kind === "rust" && skip.has("rust"))
       ) {
         console.warn(
-          `Skipping default checks for ${info.kind} project at ${path} due to --skip flag.`,
+          `Skipping default fmt/lint for ${info.kind} project at ${path} due to --skip flag.`,
         );
         continue;
       }
@@ -79,11 +71,11 @@ export async function checkHandler(_flags: Record<string, unknown>) {
           : "generic",
       });
       defaults.push(
-        ...defaultTasks(info.kind, "check").map((t) => ({
+        ...defaultTasks(info.kind, "fmt").map((t) => ({
           ...t,
           cwd: path,
           env: baseEnv,
-        })) as Array<Task & { stage: CheckStage }>,
+        })),
       );
     }
 
@@ -135,11 +127,11 @@ export async function checkHandler(_flags: Record<string, unknown>) {
       }
 
       stageTasks.push(...defaults.filter((t) => t.stage === stage));
-      await runTasks(stageTasks, errors, "check");
+      await runTasks(stageTasks, errors, "fmt");
     }
   }
 
   if (errors.length) {
-    throw new Error(`Check completed with errors:\n${errors.join("\n")}`);
+    throw new Error(`Fmt completed with errors:\n${errors.join("\n")}`);
   }
 }

@@ -1,12 +1,15 @@
-import { parse } from "std/flags/mod.ts";
 import { schemasHandler } from "./schemas/mod.ts";
 import { checkHandler } from "./check.ts";
 import { bumpHandler } from "./bump.ts";
 import { bomHandler } from "./bom/mod.ts";
 import { buildHandler } from "./build.ts";
 import { initHandler } from "./init.ts";
+import { fmtHandler } from "./fmt.ts";
 
-export default async function dev(args: string[], raw: Record<string, unknown>) {
+export default async function dev(
+  args: string[],
+  raw: Record<string, unknown>,
+) {
   const [sub, ...rest] = args;
   const flags = raw;
 
@@ -15,6 +18,8 @@ export default async function dev(args: string[], raw: Record<string, unknown>) 
       return await schemasHandler(flags);
     case "check":
       return await checkHandler(flags);
+    case "fmt":
+      return await fmtHandler(flags);
     case "bump":
       return await bumpHandler(flags);
     case "bom":
@@ -34,7 +39,8 @@ function devHelp() {
 Subcommands:
   schemas fetch|validate
   check
-  bump --level=patch|minor|major [--file=deno.json]
+  fmt
+  bump --level=patch|minor|major [--fix-missing] [--resume]
   bom fetch
   build
   init githooks|buildsys

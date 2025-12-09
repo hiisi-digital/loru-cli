@@ -1,4 +1,4 @@
-import { join, dirname, fromFileUrl } from "std/path/mod.ts";
+import { dirname, fromFileUrl, join } from "std/path/mod.ts";
 import { ensureDir } from "std/fs/mod.ts";
 import { collectWorkspaceConfigs } from "@loru/devkit";
 
@@ -32,11 +32,17 @@ fi
 async function installHooks(baseDir: string) {
   const hookDir = join(baseDir, ".githooks");
   await ensureDir(hookDir);
-  await Deno.writeTextFile(join(hookDir, "commit-msg"), commitMsgHook, { mode: 0o755 });
-  await Deno.writeTextFile(join(hookDir, "pre-push"), prePushHook, { mode: 0o755 });
+  await Deno.writeTextFile(join(hookDir, "commit-msg"), commitMsgHook, {
+    mode: 0o755,
+  });
+  await Deno.writeTextFile(join(hookDir, "pre-push"), prePushHook, {
+    mode: 0o755,
+  });
   await Deno.chmod(join(hookDir, "commit-msg"), 0o755);
   await Deno.chmod(join(hookDir, "pre-push"), 0o755);
-  await new Deno.Command("git", { args: ["-C", baseDir, "config", "core.hooksPath", ".githooks"] }).output();
+  await new Deno.Command("git", {
+    args: ["-C", baseDir, "config", "core.hooksPath", ".githooks"],
+  }).output();
   console.log(`Installed git hooks in ${baseDir}`);
 }
 
