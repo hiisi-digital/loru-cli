@@ -1,6 +1,6 @@
 {
   "name": "@loru/cli",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "exports": "./main.ts",
   "tasks": {
     "dev": "deno run -A main.ts"
@@ -14,14 +14,20 @@
     "path": ".loru/deno.lock"
   },
   "lint": {
-    "exclude": [".loru/"],
+    "exclude": [
+      ".loru/"
+    ],
     "rules": {
-      "tags": ["recommended"]
+      "tags": [
+        "recommended"
+      ]
     }
   },
   "fmt": {
     "indentWidth": 2,
     "singleQuote": false,
-    "exclude": [".loru/"]
+    "exclude": [
+      ".loru/"
+    ]
   }
 }
